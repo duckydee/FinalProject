@@ -1,36 +1,41 @@
 import bridges.base.GraphAdjList;
-import bridges.base.GraphAdjMatrix;
 import bridges.connect.Bridges;
 import bridges.connect.DataSource;
 import bridges.data_src_dependent.City;
 import bridges.validation.RateLimitException;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.text.DecimalFormat;
+import java.util.*;
 
 public class Main {
+    public static GraphAdjList<String, String, Double> graph = new GraphAdjList<>();
+    public static Vector<City> cities;
+    public static HashMap<String, Integer> cityMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException, RateLimitException {
         //Initalize bridges object
         Bridges bridges = new Bridges(21,"duckydee","348122572003");
-        GraphAdjList<String, String, Double> graph = new GraphAdjList<>();
+
         bridges.setCoordSystemType("albersusa");
         bridges.setMapOverlay(true);
+        HashMap<String, Boolean> visited = new HashMap<>();
 
         //Collect the data
         DataSource ds = bridges.getDataSource();
         HashMap<String, String> params = new HashMap<>();
         params.put("min_pop", "300000");
-        Vector<City> cities = ds.getUSCitiesData(params);
+        cities = ds.getUSCitiesData(params);
 
-
+        int counter = 0;
         //Plot all the points
         for (City city : cities){
+            cityMap.put(city.getCity(),counter);
+            visited.put(city.getCity(),false);
             graph.addVertex(city.getCity(),city.getCity());
             graph.getVertex(city.getCity()).setLocation(city.getLongitude(),city.getLatitude());
             graph.getVertex(city.getCity()).setSize(1.0f);
+            counter += 1;
         }
 
         //Generate all of the possible distances
@@ -43,15 +48,55 @@ public class Main {
         }
 
         //Get the MST
-        HashMap<HashMap <String, String>,Double> MSTPath = Prim(graph);
+        HashMap<HashMap <String, String>,Double> MST = Prim(graph);
 
-        for (HashMap <String, String> x : MSTPath.keySet()){
-            graph.addEdge(x.keySet().toArray(new String[0])[0],x.values().toArray(new String[0])[0],MSTPath.get(x));
+        GraphAdjList<String, String, Double> mstGraph = new GraphAdjList<>();
+        for (String g : graph.getVertices().keySet()){
+            mstGraph.addVertex(g,g);
+            mstGraph.getVertex(g).setLocation(graph.getVertex(g).getLocationX(),graph.getVertex(g).getLocationY());
+        }
+        for (HashMap<String, String> edge : MST.keySet()){
+            mstGraph.addEdge(edge.keySet().toArray(new String[0])[0],edge.values().toArray(new String[0])[0],MST.get(edge));
         }
 
+        double[][] distanceMatrix = new double[graph.getVertices().size()][graph.getVertices().size()];
+
+
+
+        //Initalise the Distance Matrix
+        for (int k=0;k<distanceMatrix.length;k++) {
+            for (int i = 0; i < distanceMatrix.length; i++) {
+                if (k == i){
+                    distanceMatrix[k][i] = 0.0;
+                }else{
+                    distanceMatrix[k][i] = Double.MAX_VALUE;
+                }
+            }
+        }
+
+        //Initalise the Pathing Matrix
+        int[][] Next = new int[distanceMatrix.length][distanceMatrix.length];
+        for (int k=0;k<distanceMatrix.length;k++) {
+            for (int i = 0; i < distanceMatrix.length; i++) {
+                Next[i][k] = -1;
+            }
+        }
+
+        //Floyds Path Algorithm
+        DecimalFormat df = new DecimalFormat("#.###");
+        for (int k=0;k<distanceMatrix.length;k++) {
+            for (int i=0;i<distanceMatrix.length;i++) {
+                for (int j=0;j<distanceMatrix.length;j++) {
+                    if (distanceMatrix[i][k] + distanceMatrix[k][j] < distanceMatrix[i][j]) {
+                        distanceMatrix[i][j] = Double.parseDouble(df.format(distanceMatrix[i][k] + distanceMatrix[k][j]));
+                        Next[i][j] = Next[i][k];
+                    }
+                }
+            }
+        }
 
         //Visualize
-        bridges.setDataStructure(graph);
+        bridges.setDataStructure(mstGraph);
         bridges.visualize();
     }
     static String minKey(HashMap <String, Double> keys, HashMap <String, Boolean> mstSet) {
@@ -117,8 +162,7 @@ public class Main {
         return output;
     }
 
-    public static void printMST(HashMap<HashMap <String, String>,Double> output)
-    {
+    public static void printMST(HashMap<HashMap <String, String>,Double> output) {
         System.out.println("Edge \t \tWeight");
         for (HashMap<String, String> edge : output.keySet()){
             System.out.println((edge.keySet().toArray(new String[0])[0])+" - "+(edge.values().toArray(new String[0])[0])+"\t \t"
@@ -140,4 +184,5 @@ public class Main {
         final double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c; //meters
     }
+
 }
