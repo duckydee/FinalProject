@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="818c9c08-b938-4b54-a6df-5dd05b932f1a" name="Changes" comment="Working on Floyds Pairs Implementation">
+    <list default="true" id="818c9c08-b938-4b54-a6df-5dd05b932f1a" name="Changes" comment="Formatted code to run properly.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NewCode" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,27 +99,36 @@
       <option name="project" value="LOCAL" />
       <updated>1714334216890</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Formatted code to run properly.">
+      <option name="closed" value="true" />
+      <created>1715107275328</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1715107275328</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Working on basic data implementation, starting on all distance matrix" />
     <MESSAGE value="MST Created" />
     <MESSAGE value="Working on Floyds Pairs Implementation" />
-    <option name="LAST_COMMIT_MESSAGE" value="Working on Floyds Pairs Implementation" />
+    <MESSAGE value="Formatted code to run properly." />
+    <option name="LAST_COMMIT_MESSAGE" value="Formatted code to run properly." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Main.java</url>
-          <line>97</line>
-          <option name="timeStamp" value="7" />
+          <line>111</line>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Main.java</url>
-          <line>109</line>
-          <option name="timeStamp" value="9" />
+          <line>27</line>
+          <option name="timeStamp" value="17" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="java.lang.ArrayIndexOutOfBoundsException" package="java.lang" />

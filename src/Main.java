@@ -10,100 +10,102 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public class Main {
-    public static GraphAdjList<String, String, Double> graph = new GraphAdjList<>();
+    public static GraphAdjList<String, String, Double> graph;
     public static Vector<City> cities;
     public static HashMap<String, Integer> cityMap = new HashMap<>();
+    public static Bridges bridges = new Bridges(21, "duckydee", "348122572003");
 
     public static void main(String[] args) throws IOException, RateLimitException {
-        // Initialize Bridges object
-        Bridges bridges = new Bridges(26, "rmirand1", "693627861258");
+        for (int x=1;x<6;x++) {
+            graph = new GraphAdjList<>();
+            bridges.setCoordSystemType("albersusa");
+            bridges.setMapOverlay(true);
 
-        bridges.setCoordSystemType("albersusa");
-        bridges.setMapOverlay(true);
-        HashMap<String, Boolean> visited = new HashMap<>();
+            // Collect the data
+            DataSource ds = bridges.getDataSource();
+            HashMap<String, String> params = new HashMap<>();
+            int size = x*100000;
+            params.put("min_pop", String.valueOf(size));
+            cities = ds.getUSCitiesData(params);
+            bridges.setTitle("Traveling Salesman Problem for the United States, MinPopSize = "+size);
 
-        // Collect the data
-        DataSource ds = bridges.getDataSource();
-        HashMap<String, String> params = new HashMap<>();
-        params.put("min_pop", "300000");
-        cities = ds.getUSCitiesData(params);
+            int counter = 0;
+            // Plot all the points
+            for (City city : cities) {
+                cityMap.put(city.getCity(), counter);
 
-        int counter = 0;
-        // Plot all the points
-        for (City city : cities) {
-            cityMap.put(city.getCity(), counter);
-            visited.put(city.getCity(), false);
-            graph.addVertex(city.getCity(), city.getCity());
-            graph.getVertex(city.getCity()).setLocation(city.getLongitude(), city.getLatitude());
-            graph.getVertex(city.getCity()).setSize(1.0f);
-            counter += 1;
-        }
-
-        // Generate all possible distances
-        for (City A : cities) {
-            for (City B : cities) {
-                if (A != B) {
-                    graph.addEdge(A.getCity(), B.getCity(), getDist(A.getLatitude(), A.getLongitude(), B.getLatitude(), B.getLongitude()));
-                }
+                graph.addVertex(city.getCity(), city.getCity());
+                graph.getVertex(city.getCity()).setLocation(city.getLongitude(), city.getLatitude());
+                graph.getVertex(city.getCity()).setSize(1.0f);
+                counter += 1;
             }
-        }
 
-        // Get the MST
-        HashMap<HashMap<String, String>, Double> MST = Prim(graph);
-
-        GraphAdjList<String, String, Double> mstGraph = new GraphAdjList<>();
-        for (String g : graph.getVertices().keySet()) {
-            mstGraph.addVertex(g, g);
-            mstGraph.getVertex(g).setLocation(graph.getVertex(g).getLocationX(), graph.getVertex(g).getLocationY());
-        }
-        for (HashMap<String, String> edge : MST.keySet()) {
-            mstGraph.addEdge(edge.keySet().toArray(new String[0])[0], edge.values().toArray(new String[0])[0], MST.get(edge));
-        }
-
-        double[][] distanceMatrix = new double[graph.getVertices().size()][graph.getVertices().size()];
-
-        // Initialize the Distance Matrix
-        for (int k = 0; k < distanceMatrix.length; k++) {
-            for (int i = 0; i < distanceMatrix.length; i++) {
-                if (k == i) {
-                    distanceMatrix[k][i] = 0.0;
-                } else {
-                    distanceMatrix[k][i] = Double.MAX_VALUE;
-                }
-            }
-        }
-
-        // Initialize the Pathing Matrix
-        int[][] Next = new int[distanceMatrix.length][distanceMatrix.length];
-        for (int k = 0; k < distanceMatrix.length; k++) {
-            for (int i = 0; i < distanceMatrix.length; i++) {
-                Next[i][k] = -1;
-            }
-        }
-
-        // Floyd's Path Algorithm
-        DecimalFormat df = new DecimalFormat("#.###");
-        for (int k = 0; k < distanceMatrix.length; k++) {
-            for (int i = 0; i < distanceMatrix.length; i++) {
-                for (int j = 0; j < distanceMatrix.length; j++) {
-                    if (distanceMatrix[i][k] + distanceMatrix[k][j] < distanceMatrix[i][j]) {
-                        distanceMatrix[i][j] = Double.parseDouble(df.format(distanceMatrix[i][k] + distanceMatrix[k][j]));
-                        Next[i][j] = Next[i][k];
+            // Generate all possible distances
+            for (City A : cities) {
+                for (City B : cities) {
+                    if (A != B) {
+                        graph.addEdge(A.getCity(), B.getCity(), getDist(A.getLatitude(), A.getLongitude(), B.getLatitude(), B.getLongitude()));
                     }
                 }
             }
+
+            // Get the MST
+            HashMap<HashMap<String, String>, Double> MST = Prim(graph);
+
+            GraphAdjList<String, String, Double> mstGraph = new GraphAdjList<>();
+            for (String g : graph.getVertices().keySet()) {
+                mstGraph.addVertex(g, g);
+                mstGraph.getVertex(g).setLocation(graph.getVertex(g).getLocationX(), graph.getVertex(g).getLocationY());
+            }
+            for (HashMap<String, String> edge : MST.keySet()) {
+                mstGraph.addEdge(edge.keySet().toArray(new String[0])[0], edge.values().toArray(new String[0])[0], MST.get(edge));
+            }
+
+            double[][] distanceMatrix = new double[graph.getVertices().size()][graph.getVertices().size()];
+
+            // Initialize the Distance Matrix
+            for (int k = 0; k < distanceMatrix.length; k++) {
+                for (int i = 0; i < distanceMatrix.length; i++) {
+                    if (k == i) {
+                        distanceMatrix[k][i] = 0.0;
+                    } else {
+                        distanceMatrix[k][i] = Double.MAX_VALUE;
+                    }
+                }
+            }
+
+            // Initialize the Pathing Matrix
+            int[][] Next = new int[distanceMatrix.length][distanceMatrix.length];
+            for (int k = 0; k < distanceMatrix.length; k++) {
+                for (int i = 0; i < distanceMatrix.length; i++) {
+                    Next[i][k] = -1;
+                }
+            }
+
+            // Floyd's Path Algorithm
+            DecimalFormat df = new DecimalFormat("#.###");
+            for (int k = 0; k < distanceMatrix.length; k++) {
+                for (int i = 0; i < distanceMatrix.length; i++) {
+                    for (int j = 0; j < distanceMatrix.length; j++) {
+                        if (distanceMatrix[i][k] + distanceMatrix[k][j] < distanceMatrix[i][j]) {
+                            distanceMatrix[i][j] = Double.parseDouble(df.format(distanceMatrix[i][k] + distanceMatrix[k][j]));
+                            Next[i][j] = Next[i][k];
+                        }
+                    }
+                }
+            }
+
+            // Perform DFS traversal on the MST
+            List<String> tour = dfsTraversal(mstGraph);
+
+            // Remove duplicate vertices from the tour
+            Set<String> uniqueVertices = new LinkedHashSet<>(tour);
+            tour.clear();
+            tour.addAll(uniqueVertices);
+
+            // Visualize the tour (highlight vertices and edges)
+            visualizeTour(mstGraph, tour);
         }
-
-        // Perform DFS traversal on the MST
-        List<String> tour = dfsTraversal(mstGraph);
-
-        // Remove duplicate vertices from the tour
-        Set<String> uniqueVertices = new LinkedHashSet<>(tour);
-        tour.clear();
-        tour.addAll(uniqueVertices);
-
-        // Visualize the tour (highlight vertices and edges)
-        visualizeTour(mstGraph, tour);
     }
 
     static String minKey(HashMap<String, Double> keys, HashMap<String, Boolean> mstSet) {
@@ -182,7 +184,6 @@ public class Main {
                 dfsVisit(vertex, g, visited, tour);
             }
         }
-
         return tour;
     }
 
@@ -190,9 +191,9 @@ public class Main {
         visited.replace(vertex, true);
         tour.add(vertex);
 
-        for (Edge neighbor : g.outgoingEdgeSetOf(vertex)) {
+        for (Edge<String, Double> neighbor : g.outgoingEdgeSetOf(vertex)) {
             if (!visited.get(neighbor.getTo())) {
-                dfsVisit(neighbor.getTo().toString(), g, visited, tour);
+                dfsVisit(neighbor.getTo(), g, visited, tour);
             }
         }
     }
@@ -230,9 +231,6 @@ public class Main {
         graph.getVertex(tour.getLast()).setColor("red");
 
         // Visualize the tour
-        Bridges bridges = new Bridges(21, "duckydee", "348122572003");
-        bridges.setCoordSystemType("albersusa");
-        bridges.setMapOverlay(true);
         bridges.setDataStructure(graph);
         bridges.visualize();
     }
